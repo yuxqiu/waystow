@@ -1,13 +1,20 @@
 # WayStow
 
-WayStow is a transient file shelf for Wayland. Drag anything to the edge of the screen and it's kept on a shelf, wherever it came from. Run actions on it (convert, resize, compress, OCR, merge…), then drag everything out together into an email, a chat or a folder.
+> [!WARNING]
+> WayStow is a work in progress. It has been tested end to end in a headless sway but not yet in daily use, so expect rough edges and breaking changes.
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/shelf-dark.png">
-    <img src="assets/shelf-light.png" width="640" alt="The WayStow shelf at the right edge of the screen: a fanned stack of thumbnails, seven items with sizes and time left, a Copy path button, and a pill at the top showing a finished conversion to tiles.webp.">
+    <img src="assets/shelf-light.png" width="49%" alt="The WayStow shelf at the right edge of the screen: a fanned stack of thumbnails, seven items with sizes and time left, a Copy path button, and a pill at the top showing a finished conversion to tiles.webp.">
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/dropzones-dark.png">
+    <img src="assets/dropzones-light.png" width="49%" alt="While three images are dragged over the edge, the panel shows a large Keep on shelf zone, a chip for the Email to Alice collection, and Convert, Resize, Optimize and Copy text (OCR) tiles.">
   </picture>
 </p>
+
+WayStow is a transient file shelf for Wayland. Drag anything to the edge of the screen and it's kept on a shelf, wherever it came from. Run actions on it (convert, resize, compress, OCR, merge…), then drag everything out together into an email, a chat or a folder.
 
 - **Shelf.** Items are references: WayStow never moves or deletes your files. Items in *Temporary* expire after an hour unless pinned; named collections (e.g. "Email to Alice") keep theirs.
 - **Actions.** Every action runs a mature tool (ImageMagick, ffmpeg, qpdf, Ghostscript, OCRmyPDF, Tesseract, exiftool, bsdtar, jq, qrencode). Results are written next to the input, never overwrite anything, and go to the Trash on undo. You can add your own in TOML.
@@ -15,13 +22,6 @@ WayStow is a transient file shelf for Wayland. Drag anything to the edge of the 
 - **Recent.** Finished downloads, new screenshots, files you copied or opened, and changes in folders you choose.
 - **Island.** A pill for things in flight: job progress, downloads, a finished result, and new screenshots (annotate, OCR, copy, keep).
 - **Any layer-shell compositor.** Tested end to end in a headless sway; niri offers every protocol it uses (`waystow doctor`). Hyprland, river, KDE and COSMIC should work. GNOME isn't supported (no layer-shell).
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/dropzones-dark.png">
-    <img src="assets/dropzones-light.png" width="640" alt="While three images are dragged over the edge, the panel shows a large Keep on shelf zone, a chip for the Email to Alice collection, and Convert, Resize, Optimize and Copy text (OCR) tiles.">
-  </picture>
-</p>
 
 ## Install (Nix + home-manager)
 
@@ -169,22 +169,6 @@ ignore = ["*.swp", "*.tmp", "*~", ".DS_Store"]
 [jobs]
 concurrency = 0            # 0 = half the CPUs
 ```
-
-### Blur and shadow
-
-GTK 4.24 and newer blur the panel by themselves where the compositor supports `ext-background-effect-v1`. Until then, ask the compositor. Compositors blur the whole layer surface, which would include WayStow's own shadow margin, so let the compositor draw the shadow too and set `ui.client_shadow = false` (lower `ui.opacity`, e.g. `0.8`, to see the blur). The layer namespaces are `waystow`, `waystow-island` and `waystow-quicklook`.
-
-```kdl
-// niri
-layer-rule {
-    match namespace="^waystow"
-    geometry-corner-radius 24
-    shadow { on; softness 28; spread 2; offset x=0 y=12; color "#00000073"; }
-    background-effect { blur true; xray false; }
-}
-```
-
-On Hyprland, add a `layerrule` that enables blur for the `waystow` namespaces (see the Hyprland wiki's layer rules page for the syntax of your version).
 
 ## Commands
 
