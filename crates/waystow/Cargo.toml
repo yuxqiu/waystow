@@ -1,0 +1,26 @@
+[package]
+name = "waystow"
+description = "A transient file shelf and action surface for Wayland (layer-shell)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+waystow-core.workspace = true
+waystow-store.workspace = true
+waystow-jobs.workspace = true
+waystow-wl.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+libc.workspace = true
+tokio.workspace = true
+async-channel = "2"
+clap = { version = "4", features = ["derive"] }
+gtk = { package = "gtk4", version = "0.11", features = ["v4_14"] }
+gtk4-layer-shell = "0.8"
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

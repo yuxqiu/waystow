@@ -1,0 +1,18 @@
+[package]
+name = "waystow-store"
+description = "WayStow's SQLite store: collections, shelf items, jobs and the Recent feed"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+waystow-core.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+rusqlite = { version = "0.37", features = ["bundled"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,19 @@
+[package]
+name = "waystow-jobs"
+description = "WayStow's job runner: process groups, progress, cancellation and safe output renames"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+waystow-core.workspace = true
+anyhow.workspace = true
+libc.workspace = true
+tokio.workspace = true
+async-channel = "2"
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

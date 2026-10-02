@@ -1,0 +1,402 @@
+# WayStow's built-in actions. Copy one into ~/.config/waystow/actions/*.toml
+# and change it: an action with the same id replaces the built-in one.
+#
+# Shelf snippets have MIME type text/x-snippet and web addresses text/x-uri;
+# command actions get them as a text file.
+
+# ── Any item ─────────────────────────────────────────────────────────────
+
+[[action]]
+id = "any.copy-path"
+title = "Copy path"
+icon = "ws-copy-symbolic"
+primary = true
+arity = "all"
+internal = "copy-path"
+
+[[action]]
+id = "any.copy-file"
+title = "Copy file"
+icon = "ws-clipboard-symbolic"
+arity = "all"
+exclude = ["text/x-snippet", "text/x-uri"]
+internal = "copy-file"
+
+[[action]]
+id = "any.reveal"
+title = "Show in folder"
+icon = "ws-folder-symbolic"
+primary = true
+exclude = ["text/x-snippet", "text/x-uri"]
+internal = "reveal"
+
+[[action]]
+id = "any.open"
+title = "Open"
+icon = "ws-open-symbolic"
+exclude = ["text/x-snippet"]
+internal = "open"
+
+[[action]]
+id = "any.rename"
+title = "Rename…"
+icon = "ws-edit-symbolic"
+exclude = ["text/x-snippet", "text/x-uri"]
+params = [{ name = "new_name", label = "New name", type = "text", default = "{name}" }]
+internal = "rename"
+
+[[action]]
+id = "any.checksum"
+title = "Copy SHA-256"
+icon = "ws-hash-symbolic"
+exclude = ["inode/directory", "text/x-uri"]
+requires = ["sha256sum"]
+command = ["sha256sum", "{in}"]
+stdout = "clipboard"
+
+[[action]]
+id = "any.zip"
+title = "Compress to ZIP"
+icon = "ws-archive-symbolic"
+exclude = ["text/x-snippet", "text/x-uri"]
+requires = ["bsdtar"]
+command = ["bsdtar", "-a", "-cf", "{out}", "-C", "{dir}", "./{name}"]
+output = "{dir}/{stem}.zip"
+
+[[action]]
+id = "any.tar-zst"
+title = "Compress to .tar.zst"
+icon = "ws-archive-symbolic"
+exclude = ["text/x-snippet", "text/x-uri"]
+requires = ["bsdtar"]
+command = ["bsdtar", "--zstd", "-cf", "{out}", "-C", "{dir}", "./{name}"]
+output = "{dir}/{name}.tar.zst"
+
+[[action]]
+id = "any.trash"
+title = "Move to Trash"
+icon = "ws-trash-symbolic"
+exclude = ["text/x-snippet", "text/x-uri"]
+internal = "trash"
+
+# ── Images ───────────────────────────────────────────────────────────────
+
+[[action]]
+id = "image.convert"
+title = "Convert"
+icon = "ws-convert-symbolic"
+primary = true
+mime = ["image/*"]
+exclude = ["image/svg+xml"]
+requires = ["magick"]
+params = [{ name = "format", label = "Format", type = "choice", choices = ["webp", "png", "jpg", "avif"], default = "webp" }]
+command = ["magick", "{in}", "{out}"]
+output = "{dir}/{stem}.{format}"
+
+[[action]]
+id = "image.resize"
+title = "Resize"
+icon = "ws-resize-symbolic"
+primary = true
+mime = ["image/*"]
+exclude = ["image/svg+xml", "image/gif"]
+requires = ["magick"]
+params = [{ name = "percent", label = "Scale %", type = "int", default = 50, min = 5, max = 400 }]
+command = ["magick", "{in}", "-resize", "{percent}%", "{out}"]
+output = "{dir}/{stem}-resized.{ext}"
+
+[[action]]
+id = "image.optimize"
+title = "Optimize"
+icon = "ws-sparkle-symbolic"
+primary = true
+mime = ["image/png", "image/jpeg", "image/webp"]
+requires = ["magick"]
+params = [{ name = "quality", label = "Quality", type = "int", default = 82, min = 30, max = 100 }]
+command = ["magick", "{in}", "-strip", "-quality", "{quality}", "{out}"]
+output = "{dir}/{stem}-optimized.{ext}"
+
+[[action]]
+id = "image.ocr"
+title = "Copy text (OCR)"
+icon = "ws-text-symbolic"
+primary = true
+mime = ["image/*"]
+exclude = ["image/svg+xml"]
+requires = ["tesseract"]
+params = [{ name = "lang", label = "Language", type = "text", default = "eng" }]
+command = ["tesseract", "{in}", "-", "-l", "{lang}"]
+stdout = "clipboard"
+
+[[action]]
+id = "image.copy"
+title = "Copy image"
+icon = "ws-copy-symbolic"
+mime = ["image/png", "image/jpeg", "image/webp", "image/gif"]
+internal = "copy-image"
+
+[[action]]
+id = "image.annotate"
+title = "Annotate"
+icon = "ws-edit-symbolic"
+mime = ["image/png", "image/jpeg"]
+requires = ["satty"]
+command = ["satty", "--filename", "{in}", "--output-filename", "{out}", "--early-exit"]
+output = "{dir}/{stem}-annotated.png"
+interactive = true
+
+[[action]]
+id = "image.strip-metadata"
+title = "Remove metadata"
+icon = "ws-shield-symbolic"
+mime = ["image/jpeg", "image/png", "image/webp", "image/tiff", "image/heic"]
+requires = ["exiftool"]
+command = ["exiftool", "-q", "-all=", "-o", "{out}", "{in}"]
+output = "{dir}/{stem}-clean.{ext}"
+
+[[action]]
+id = "image.to-pdf"
+title = "Combine into PDF"
+icon = "ws-pages-symbolic"
+mime = ["image/*"]
+exclude = ["image/svg+xml"]
+arity = "all"
+requires = ["magick"]
+command = ["magick", "{ins}", "{out}"]
+output = "{dir}/{stem}.pdf"
+
+# ── Video ────────────────────────────────────────────────────────────────
+
+[[action]]
+id = "video.compress"
+title = "Compress"
+icon = "ws-archive-symbolic"
+primary = true
+mime = ["video/*"]
+requires = ["ffmpeg"]
+params = [{ name = "crf", label = "Quality (lower is better)", type = "int", default = 28, min = 18, max = 40 }]
+command = ["ffmpeg", "-nostdin", "-hide_banner", "-y", "-i", "{in}", "-c:v", "libx264", "-crf", "{crf}", "-preset", "medium", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", "-progress", "pipe:1", "-nostats", "{out}"]
+output = "{dir}/{stem}-compressed.mp4"
+progress = "ffmpeg"
+
+[[action]]
+id = "video.gif"
+title = "Make GIF"
+icon = "ws-film-symbolic"
+primary = true
+mime = ["video/*"]
+requires = ["ffmpeg"]
+params = [
+  { name = "fps", label = "Frames per second", type = "int", default = 12, min = 2, max = 30 },
+  { name = "width", label = "Width", type = "int", default = 480, min = 120, max = 1920 },
+]
+command = ["ffmpeg", "-nostdin", "-hide_banner", "-y", "-i", "{in}", "-vf", "fps={fps},scale={width}:-2:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse", "-loop", "0", "-progress", "pipe:1", "-nostats", "{out}"]
+output = "{dir}/{stem}.gif"
+progress = "ffmpeg"
+
+[[action]]
+id = "video.extract-audio"
+title = "Extract audio"
+icon = "ws-audio-symbolic"
+primary = true
+mime = ["video/*"]
+requires = ["ffmpeg"]
+command = ["ffmpeg", "-nostdin", "-hide_banner", "-y", "-i", "{in}", "-vn", "-c:a", "libmp3lame", "-q:a", "2", "-progress", "pipe:1", "-nostats", "{out}"]
+output = "{dir}/{stem}.mp3"
+progress = "ffmpeg"
+
+[[action]]
+id = "video.to-mp4"
+title = "Convert to MP4"
+icon = "ws-convert-symbolic"
+mime = ["video/*"]
+exclude = ["video/mp4"]
+requires = ["ffmpeg"]
+command = ["ffmpeg", "-nostdin", "-hide_banner", "-y", "-i", "{in}", "-c:v", "libx264", "-crf", "20", "-c:a", "aac", "-movflags", "+faststart", "-progress", "pipe:1", "-nostats", "{out}"]
+output = "{dir}/{stem}.mp4"
+progress = "ffmpeg"
+
+[[action]]
+id = "video.first-frame"
+title = "Save first frame"
+icon = "ws-camera-symbolic"
+mime = ["video/*"]
+requires = ["ffmpeg"]
+command = ["ffmpeg", "-nostdin", "-hide_banner", "-y", "-i", "{in}", "-frames:v", "1", "{out}"]
+output = "{dir}/{stem}-frame.png"
+
+# ── Audio ────────────────────────────────────────────────────────────────
+
+[[action]]
+id = "audio.convert"
+title = "Convert"
+icon = "ws-convert-symbolic"
+primary = true
+mime = ["audio/*"]
+requires = ["ffmpeg"]
+params = [{ name = "format", label = "Format", type = "choice", choices = ["mp3", "opus", "flac", "m4a", "wav"], default = "mp3" }]
+command = ["ffmpeg", "-nostdin", "-hide_banner", "-y", "-i", "{in}", "-vn", "-progress", "pipe:1", "-nostats", "{out}"]
+output = "{dir}/{stem}.{format}"
+progress = "ffmpeg"
+
+[[action]]
+id = "audio.normalize"
+title = "Normalize loudness"
+icon = "ws-loudness-symbolic"
+mime = ["audio/*"]
+requires = ["ffmpeg"]
+command = ["ffmpeg", "-nostdin", "-hide_banner", "-y", "-i", "{in}", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-progress", "pipe:1", "-nostats", "{out}"]
+output = "{dir}/{stem}-normalized.{ext}"
+progress = "ffmpeg"
+
+# ── PDF ──────────────────────────────────────────────────────────────────
+
+[[action]]
+id = "pdf.merge"
+title = "Merge"
+icon = "ws-merge-symbolic"
+primary = true
+mime = ["application/pdf"]
+arity = "all"
+min_inputs = 2
+requires = ["qpdf"]
+command = ["qpdf", "--empty", "--pages", "{ins}", "--", "{out}"]
+output = "{dir}/{stem}-merged.pdf"
+
+[[action]]
+id = "pdf.compress"
+title = "Compress"
+icon = "ws-archive-symbolic"
+primary = true
+mime = ["application/pdf"]
+requires = ["gs"]
+params = [{ name = "quality", label = "Quality", type = "choice", choices = ["ebook", "screen", "printer"], default = "ebook" }]
+command = ["gs", "-q", "-dSAFER", "-dNOPAUSE", "-dBATCH", "-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.5", "-dPDFSETTINGS=/{quality}", "-sOutputFile={out}", "{in}"]
+output = "{dir}/{stem}-compressed.pdf"
+
+[[action]]
+id = "pdf.ocr"
+title = "Make searchable (OCR)"
+icon = "ws-text-symbolic"
+primary = true
+mime = ["application/pdf"]
+requires = ["ocrmypdf"]
+command = ["ocrmypdf", "--skip-text", "--quiet", "{in}", "{out}"]
+output = "{dir}/{stem}-ocr.pdf"
+
+[[action]]
+id = "pdf.split"
+title = "Split into pages"
+icon = "ws-split-symbolic"
+mime = ["application/pdf"]
+requires = ["qpdf"]
+command = ["qpdf", "--split-pages", "{in}", "{out}/{stem}-%d.pdf"]
+output = "{dir}/{stem}-pages"
+output_dir = true
+
+[[action]]
+id = "pdf.extract-pages"
+title = "Extract pages…"
+icon = "ws-pages-symbolic"
+mime = ["application/pdf"]
+requires = ["qpdf"]
+params = [{ name = "pages", label = "Pages (e.g. 1-3,5)", type = "text", default = "1" }]
+command = ["qpdf", "--empty", "--pages", "{in}", "{pages}", "--", "{out}"]
+output = "{dir}/{stem}-extract.pdf"
+
+[[action]]
+id = "pdf.to-images"
+title = "Pages to images"
+icon = "ws-image-symbolic"
+mime = ["application/pdf"]
+requires = ["pdftoppm"]
+command = ["pdftoppm", "-png", "-r", "150", "{in}", "{out}/{stem}"]
+output = "{dir}/{stem}-images"
+output_dir = true
+
+# ── Archives ─────────────────────────────────────────────────────────────
+
+[[action]]
+id = "archive.extract"
+title = "Extract here"
+icon = "ws-archive-symbolic"
+primary = true
+mime = ["application/zip", "application/x-tar", "application/x-compressed-tar", "application/x-bzip-compressed-tar", "application/x-xz-compressed-tar", "application/x-zstd-compressed-tar", "application/x-7z-compressed", "application/vnd.rar", "application/x-rar", "application/x-cpio", "application/x-iso9660-image", "application/gzip"]
+requires = ["bsdtar"]
+command = ["bsdtar", "-xf", "{in}", "-C", "{out}"]
+output = "{dir}/{stem}"
+output_dir = true
+
+[[action]]
+id = "archive.list"
+title = "List contents"
+icon = "ws-list-symbolic"
+primary = true
+mime = ["application/zip", "application/x-tar", "application/x-compressed-tar", "application/x-bzip-compressed-tar", "application/x-xz-compressed-tar", "application/x-zstd-compressed-tar", "application/x-7z-compressed", "application/vnd.rar", "application/x-rar", "application/x-cpio", "application/x-iso9660-image"]
+requires = ["bsdtar"]
+command = ["bsdtar", "-tf", "{in}"]
+stdout = "shelf"
+
+# ── Text ─────────────────────────────────────────────────────────────────
+
+[[action]]
+id = "text.copy-contents"
+title = "Copy contents"
+icon = "ws-copy-symbolic"
+primary = true
+mime = ["text/*", "application/json", "application/xml", "application/toml", "application/x-yaml", "application/javascript", "application/x-shellscript"]
+exclude = ["text/x-uri"]
+internal = "copy-contents"
+
+[[action]]
+id = "text.save"
+title = "Save as file"
+icon = "ws-keep-symbolic"
+primary = true
+mime = ["text/x-snippet"]
+internal = "save-text"
+
+[[action]]
+id = "text.format-json"
+title = "Format JSON"
+icon = "ws-braces-symbolic"
+primary = true
+mime = ["application/json"]
+requires = ["jq"]
+command = ["jq", ".", "{in}"]
+stdout = "file"
+output = "{dir}/{stem}-formatted.json"
+
+[[action]]
+id = "text.qr"
+title = "QR code"
+icon = "ws-qr-symbolic"
+primary = true
+mime = ["text/x-uri", "text/x-snippet"]
+requires = ["qrencode"]
+command = ["qrencode", "-s", "10", "-m", "2", "-r", "{in}", "-o", "{out}"]
+output = "{dir}/qr-{stem}.png"
+
+[[action]]
+id = "text.diff"
+title = "Compare"
+icon = "ws-compare-symbolic"
+mime = ["text/*", "application/json", "application/xml", "application/toml", "application/x-yaml", "application/javascript", "application/x-shellscript"]
+arity = "pair"
+requires = ["diff"]
+command = ["diff", "-u", "{ins}"]
+stdout = "shelf"
+success_codes = [0, 1]
+
+# ── Folders ──────────────────────────────────────────────────────────────
+
+[[action]]
+id = "dir.terminal"
+title = "Open terminal here"
+icon = "ws-terminal-symbolic"
+primary = true
+mime = ["inode/directory"]
+requires = ["xdg-terminal-exec"]
+command = ["xdg-terminal-exec"]
+cwd = "{in}"
+detach = true

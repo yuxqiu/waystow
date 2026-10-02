@@ -1,0 +1,16 @@
+[package]
+name = "waystow-wl"
+description = "WayStow's Wayland clipboard I/O over data-control, and protocol discovery for `doctor`"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+wl-clipboard-rs = "0.9"
+wayland-client.workspace = true
+wayland-protocols.workspace = true
+wayland-protocols-wlr.workspace = true
+
+[lints]
+workspace = true
