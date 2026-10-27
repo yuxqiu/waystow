@@ -1,7 +1,7 @@
 # WayStow
 
-> [!WARNING]
-> WayStow is a work in progress. It has been tested end to end in a headless sway but not yet in daily use, so expect rough edges and breaking changes.
+> [!IMPORTANT]
+> **Archived (2026-10).** WayStow is no longer developed. A file shelf turned out to be used too rarely to justify a standalone app, and the other floating-utility ideas we researched are either already covered by desktop shells such as DankMaterialShell or fit better as small shell plugins. The code still builds and its tests pass, but expect no fixes or releases.
 
 <p align="center">
   <picture>
